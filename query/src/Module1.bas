@@ -63,19 +63,20 @@ End Function
 
 Function get_sql_str()
     Dim base As Range
-    Set base = ThisWorkbook.Worksheets(CTL_SH).Range("A1")
+    Set base = ThisWorkbook.Worksheets(CTL_SH).Range(SQL_ADD)
     
     get_sql_str = ""
-    If base.Range("B3").Value <> "" Then
-        get_sql_str = base.Range("B3").Value
-        If base.Range("B4").Value <> "" Then
-            Dim last_row
-            last_row = base.Range("B3").End(xlDown).Row
+    If base.Value <> "" Then
+        get_sql_str = base.Value
+        If base.Offset(1, 0).Value <> "" Then
+            Dim st_row, last_row, row_num
+            st_row = base.Row
+            last_row = base.End(xlDown).Row
+            row_num = last_row - st_row
             
             Dim r
-            For r = 4 To last_row
-                get_sql_str = get_sql_str & vbCrLf & base.Range("B" & r).Value
-            
+            For r = 1 To row_num
+                get_sql_str = get_sql_str & vbCrLf & base.Offset(r, 0).Value
             Next
         End If
     End If
