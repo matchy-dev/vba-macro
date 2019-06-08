@@ -18,60 +18,24 @@ Function make_dsn_str_org()
     
     Dim srv_type
     srv_type = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_SRV_TYPE, False)
+    
+    Dim dsn_name, host, port, db_name, user, pass
+    dsn_name = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_DSN_NAME, False)
+    host = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_HOST, False)
+    port = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_PORT, False)
+    db_name = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_DB_NAME, False)
+    user = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_USER, False)
+    pass = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_PASS, False)
+    
     Select Case srv_type
         Case "oracle"
-            make_dsn_str_org = make_dsn_str_oracle
+            make_dsn_str_org = "DSN=" & dsn_name & ";UID=" & user & ";PWD=" & pass & ";DBQ=" & host & ":" & port & "/" & db_name
         Case "postgres"
-            make_dsn_str_org = make_dsn_str_postgres
+            make_dsn_str_org = "DSN=" & dsn_name & ";DATABASE=" & db_name & ";SERVER=" & host & ";PORT=" & port & ";UID=" & user & ";PWD=" & pass
         Case "sqlite"
-            make_dsn_str_org = make_dsn_str_sqlite
+            make_dsn_str_org = "DSN=" & dsn_name & ";Database=" & db_name
     End Select
     Debug.Print srv_type & " : " & make_dsn_str_org
-End Function
-
-Function make_dsn_str_oracle()
-    Dim show_name
-    show_name = Worksheets(CTL_SH).Range(DSN_ADD).Value
-    
-    Dim dsn_name, host, port, db_name, user, pass
-    dsn_name = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_DSN_NAME, False)
-    host = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_HOST, False)
-    port = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_PORT, False)
-    db_name = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_DB_NAME, False)
-    user = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_USER, False)
-    pass = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_PASS, False)
-    
-    make_dsn_str_oracle = "DSN=" & dsn_name & ";UID=" & user & ";PWD=" & pass & ";DBQ=" & host & ":" & port & "/" & db_name
-End Function
-
-Function make_dsn_str_postgres()
-    Dim show_name
-    show_name = Worksheets(CTL_SH).Range(DSN_ADD).Value
-    
-    Dim dsn_name, host, port, db_name, user, pass
-    dsn_name = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_DSN_NAME, False)
-    host = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_HOST, False)
-    port = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_PORT, False)
-    db_name = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_DB_NAME, False)
-    user = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_USER, False)
-    pass = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_PASS, False)
-    
-    make_dsn_str_postgres = "DSN=" & dsn_name & ";DATABASE=" & db_name & ";SERVER=" & host & ";PORT=" & port & ";UID=" & user & ";PWD=" & pass
-End Function
-
-Function make_dsn_str_sqlite()
-    Dim show_name
-    show_name = Worksheets(CTL_SH).Range(DSN_ADD).Value
-    
-    Dim dsn_name, host, port, db_name, user, pass
-    dsn_name = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_DSN_NAME, False)
-    host = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_HOST, False)
-    port = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_PORT, False)
-    db_name = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_DB_NAME, False)
-    user = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_USER, False)
-    pass = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_PASS, False)
-    
-    make_dsn_str_sqlite = "DSN=" & dsn_name & ";Database=" & db_name
 End Function
 
 Function make_dsn_str()
