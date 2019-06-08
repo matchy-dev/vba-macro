@@ -46,9 +46,13 @@ Function get_sql_str()
     Dim base As Range
     Set base = ThisWorkbook.Worksheets(CTL_SH).Range(SQL_ADD)
     
-    get_sql_str = ""
+    get_sql_str = get_sql_str_by_add(base)
+End Function
+
+Function get_sql_str_by_add(base As Range)
+    get_sql_str_by_add = ""
     If base.Value <> "" Then
-        get_sql_str = base.Value
+        get_sql_str_by_add = base.Value
         If base.Offset(1, 0).Value <> "" Then
             Dim st_row, last_row, row_num
             st_row = base.Row
@@ -57,7 +61,7 @@ Function get_sql_str()
             
             Dim r
             For r = 1 To row_num
-                get_sql_str = get_sql_str & vbCrLf & base.Offset(r, 0).Value
+                get_sql_str_by_add = get_sql_str_by_add & vbCrLf & base.Offset(r, 0).Value
             Next
         End If
     End If
@@ -84,6 +88,13 @@ Sub button_click()
     Dim dsn_str, sql
     dsn_str = make_dsn_str
     sql = get_sql_str
+    Call select_sql(OUT_SH, dsn_str, sql)
+End Sub
+
+Sub exec_this_sql()
+    Dim dsn_str, sql
+    dsn_str = make_dsn_str
+    sql = get_sql_str_by_add(ActiveCell)
     Call select_sql(OUT_SH, dsn_str, sql)
 End Sub
 

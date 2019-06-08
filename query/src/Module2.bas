@@ -1,0 +1,34 @@
+Attribute VB_Name = "Module2"
+Public def_list
+
+Sub add_command_bar(bar_type, menu_name, func_name)
+    With Application.CommandBars(bar_type).Controls.Add()
+        .Caption = menu_name
+        .OnAction = func_name
+    End With
+End Sub
+
+Sub del_command_bar(bar_type, menu_name)
+    For Each bar In Application.CommandBars(bar_type).Controls
+        If bar.Caption = menu_name Then
+            Application.CommandBars(bar_type).Controls(menu_name).Delete
+        End If
+    Next
+End Sub
+
+Sub auto_open()
+    def_list = Array( _
+        Array("Cell", "Ç±ÇÃSQLÇé¿çs", "exec_this_sql") _
+    )
+    
+    Dim i
+    For i = LBound(def_list) To UBound(def_list)
+        Call add_command_bar(def_list(i)(0), def_list(i)(1), def_list(i)(2))
+    Next
+End Sub
+
+Sub auto_close()
+    For i = LBound(def_list) To UBound(def_list)
+        Call del_command_bar(def_list(i)(0), def_list(i)(1))
+    Next
+End Sub
