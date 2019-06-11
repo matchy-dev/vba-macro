@@ -1,6 +1,4 @@
 Attribute VB_Name = "Module2"
-Public def_list
-
 Sub add_command_bar(bar_type, menu_name, func_name)
     With Application.CommandBars(bar_type).Controls.Add()
         .Caption = menu_name
@@ -16,10 +14,15 @@ Sub del_command_bar(bar_type, menu_name)
     Next
 End Sub
 
-Sub auto_open()
-    def_list = Array( _
+Function get_def_data()
+    get_def_data = Array( _
         Array("Cell", "Ç±ÇÃSQLÇé¿çs", "exec_this_sql") _
     )
+End Function
+
+Sub auto_open()
+    Dim def_list
+    def_list = get_def_data()
     
     Dim i
     For i = LBound(def_list) To UBound(def_list)
@@ -28,6 +31,8 @@ Sub auto_open()
 End Sub
 
 Sub auto_close()
+    Dim def_list
+    def_list = get_def_data()
     For i = LBound(def_list) To UBound(def_list)
         Call del_command_bar(def_list(i)(0), def_list(i)(1))
     Next
