@@ -1,6 +1,7 @@
 Attribute VB_Name = "Module1"
 Const CTL_SH = "コントロール"
 Const OUT_SH = "結果"
+Const TBL_SH = "テーブル一覧"
 Const DSN_ADD = "E3"
 Const SQL_ADD = "B3"
 
@@ -12,12 +13,18 @@ Const DSN_CONF_DB_NAME = 6
 Const DSN_CONF_USER = 7
 Const DSN_CONF_PASS = 8
 
+Function get_srv_type()
+    Dim show_name
+    show_name = Worksheets(CTL_SH).Range(DSN_ADD).Value
+    get_srv_type = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_SRV_TYPE, False)
+End Function
+
 Function make_dsn_str_org()
     Dim show_name
     show_name = Worksheets(CTL_SH).Range(DSN_ADD).Value
     
     Dim srv_type
-    srv_type = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_SRV_TYPE, False)
+    srv_type = get_srv_type()
     
     Dim dsn_name, host, port, db_name, user, pass
     dsn_name = WorksheetFunction.VLookup(show_name, Range("dsn_conf"), DSN_CONF_DSN_NAME, False)
@@ -134,6 +141,21 @@ Sub select_sql(sh, dsn_str, sql)
     End If
     
     Range("A1").Select
+End Sub
+
+Sub get_table_list()
+    Dim srv_type, sql
+    srv_type = get_srv_type()
+    Select Case srv_type
+        Case "oracle"
+            sql = "select table_name from user_tables order by 1"
+        Case "postgres"
+            sql = "select relname from pg_stat_user_tables order by 1"
+        Case "sqlite"
+            sql = "select name from sqlite_master where type='table' order by 1"
+    End Select
+    
+    Call select_sql(TBL_SH, make_dsn_str(), sql)
 End Sub
 
 Sub check_sql()

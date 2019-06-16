@@ -14,3 +14,7 @@ End Sub
 Private Sub CommandButton2_Click()
     Call check_sql
 End Sub
+
+Private Sub CommandButton3_Click()
+    Call get_table_list
+End Sub
