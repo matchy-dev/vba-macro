@@ -74,6 +74,76 @@ Function get_sql_str_by_add(base As Range)
     End If
 End Function
 
+Function get_table_name()
+    Dim table_name
+    table_name = UCase(get_sql_str)
+    table_name = Replace(table_name, vbTab, " ")
+    table_name = Replace(table_name, vbCrLf, " ")
+    table_name = Replace(table_name, vbLf, " ")
+    
+    Dim idx
+    idx = InStr(1, table_name, " FROM ")
+    table_name = Trim(Mid(table_name, idx + 5))
+    
+    idx = InStr(1, table_name, " ")
+    If idx > 0 Then
+        table_name = Left(table_name, idx - 1)
+    End If
+    
+    get_table_name = table_name
+End Function
+
+Function get_sql_str_with_id(srv_type, in_sql)
+    Dim sql
+    sql = UCase(in_sql)
+    sql = Replace(sql, vbTab, " ")
+    sql = Replace(sql, vbCrLf, " ")
+    sql = Replace(sql, vbLf, " ")
+    
+    Dim idx
+    idx = InStr(1, sql, " FROM ")
+    
+    Dim head, tail
+    head = Left(sql, idx - 1)
+    tail = Mid(sql, idx)
+    
+    Dim add_col
+    Select Case srv_type
+        Case "oracle"
+            idx = InStr(head, "*")
+            If idx > 0 Then
+                head = Replace(head, "*", get_table_name() & ".*")
+            End If
+            add_col = "ROWID"
+        Case "postgres"
+            add_col = "CAST(CTID AS TEXT) AS ROWID"
+        Case "sqlite"
+            add_col = "ROWID"
+    End Select
+    
+    sql = head + ", " + add_col + " " + tail
+    
+    get_sql_str_with_id = sql
+End Function
+
+Function get_sel_rows()
+    Dim sel_rows
+    sel_rows = Selection.Address(False, False)
+    Dim row_array
+    row_array = Split(sel_rows, ",")
+    Dim i, j, st_ed, out_row(), all_num
+    all_num = 0
+    For i = LBound(row_array) To UBound(row_array)
+        st_ed = Split(row_array(i), ":")
+        For j = st_ed(0) To st_ed(1)
+            ReDim Preserve out_row(all_num)
+            out_row(all_num) = j
+            all_num = all_num + 1
+        Next
+    Next
+    get_sel_rows = out_row
+End Function
+
 Sub set_title_vertical()
     Range(Range("A1"), Range("A1").End(xlToRight)).Select
     With Selection
@@ -95,6 +165,10 @@ Sub button_click()
     Dim dsn_str, sql
     dsn_str = make_dsn_str
     sql = get_sql_str
+    If Worksheets(CTL_SH).CheckBox2.Value = True Then
+        sql = get_sql_str_with_id(get_srv_type(), sql)
+    End If
+    
     Call select_sql(OUT_SH, dsn_str, sql)
 End Sub
 
@@ -141,6 +215,168 @@ Sub select_sql(sh, dsn_str, sql)
     End If
     
     Range("A1").Select
+End Sub
+
+Sub insert_func()
+    If MsgBox("登録しますか?", vbOKCancel, "insert") <> vbOK Then
+        Exit Sub
+    End If
+    
+    Dim table_name
+    table_name = get_table_name()
+    
+    Dim ins_sql
+    ins_sql = "INSERT INTO " & table_name & " ( "
+    
+    Dim last_col
+    last_col = Range("A1").End(xlToRight).Column
+    If UCase(Cells(1, last_col).Value) = "ROWID" Then
+        last_col = last_col - 1
+    End If
+    
+    Dim c
+    For c = 1 To last_col
+        If c > 1 Then
+            ins_sql = ins_sql & ", "
+        End If
+        ins_sql = ins_sql & Cells(1, c).Value
+    Next
+    ins_sql = ins_sql & " ) VALUES ( "
+    
+    On Error GoTo err_line
+    
+    Dim con As New ADODB.Connection
+    con.Open make_dsn_str_org()
+    
+    Dim sql
+    For Each r In get_sel_rows()
+        sql = ins_sql
+        For c = 1 To last_col
+            If c > 1 Then
+                sql = sql & ", "
+            End If
+            sql = sql & "'" & Cells(r, c).Value & "'"
+        Next
+        sql = sql & " )"
+        Debug.Print r & " " & sql
+        Call con.Execute(sql)
+    Next
+    
+    con.Close
+    
+    Call MsgBox("完了", vbOKOnly, "insert")
+       
+    Exit Sub
+    
+err_line:
+    
+    MsgBox Err.Description, vbOKOnly, "Error"
+End Sub
+
+Sub delete_func()
+    If MsgBox("削除しますか?", vbOKCancel, "delete") <> vbOK Then
+        Exit Sub
+    End If
+    
+    Dim row_col
+    row_col = Range("A1").End(xlToRight).Column
+    If UCase(Cells(1, row_col).Value) <> "ROWID" Then
+        Call MsgBox("「更新用IDを取得」をチェックして再検索してください", vbOKOnly, "")
+        Exit Sub
+    End If
+    
+    Dim table_name
+    table_name = get_table_name()
+    
+    Dim srv_type, row_id_col_name
+    srv_type = get_srv_type()
+    Select Case srv_type
+        Case "oracle"
+            row_id_col_name = "ROWID"
+        Case "postgres"
+            row_id_col_name = "CTID"
+        Case "sqlite"
+            row_id_col_name = "ROWID"
+    End Select
+    
+    On Error GoTo err_line
+    
+    Dim con As New ADODB.Connection
+    con.Open make_dsn_str_org()
+    
+    Dim sql
+    For Each r In get_sel_rows()
+        sql = "DELETE FROM " & table_name & " WHERE " & row_id_col_name & " = '" & Cells(r, row_col).Value & "'"
+        Debug.Print r & " " & sql
+        Call con.Execute(sql)
+    Next
+    
+    con.Close
+    
+    Call MsgBox("完了", vbOKOnly, "delete")
+       
+    Exit Sub
+    
+err_line:
+    
+    MsgBox Err.Description, vbOKOnly, "Error"
+End Sub
+
+Sub update_func()
+    If MsgBox("更新しますか?", vbOKCancel, "update") <> vbOK Then
+        Exit Sub
+    End If
+    
+    Dim row_col
+    row_col = Range("A1").End(xlToRight).Column
+    If UCase(Cells(1, row_col).Value) <> "ROWID" Then
+        Call MsgBox("「更新用IDを取得」をチェックして再検索してください", vbOKOnly, "")
+        Exit Sub
+    End If
+    
+    Dim table_name
+    table_name = get_table_name()
+    
+    Dim srv_type, row_id_col_name
+    srv_type = get_srv_type()
+    Select Case srv_type
+        Case "oracle"
+            row_id_col_name = "ROWID"
+        Case "postgres"
+            row_id_col_name = "CTID"
+        Case "sqlite"
+            row_id_col_name = "ROWID"
+    End Select
+    
+    On Error GoTo err_line
+    
+    Dim con As New ADODB.Connection
+    con.Open make_dsn_str_org()
+    
+    Dim sql_head, sql
+    sql_head = "UPDATE " & table_name & " SET "
+    For Each r In get_sel_rows()
+        sql = sql_head
+        For c = 1 To row_col - 1
+            If c > 1 Then
+                sql = sql & ", "
+            End If
+            sql = sql & Cells(1, c).Value & " = '" & Cells(r, c).Value & "'"
+        Next
+        sql = sql & " WHERE " & row_id_col_name & " = '" & Cells(r, row_col).Value & "'"
+        Debug.Print r & " " & sql
+        Call con.Execute(sql)
+    Next
+    
+    con.Close
+    
+    Call MsgBox("完了", vbOKOnly, "delete")
+       
+    Exit Sub
+    
+err_line:
+    
+    MsgBox Err.Description, vbOKOnly, "Error"
 End Sub
 
 Sub get_table_list()

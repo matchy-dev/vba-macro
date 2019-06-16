@@ -16,7 +16,10 @@ End Sub
 
 Function get_def_data()
     get_def_data = Array( _
-        Array("Cell", "‚±‚ÌSQL‚ğÀs", "exec_this_sql") _
+        Array("Cell", "‚±‚ÌSQL‚ğÀs", "exec_this_sql"), _
+        Array("Row", "insert", "insert_func"), _
+        Array("Row", "delete", "delete_func"), _
+        Array("Row", "update", "update_func") _
     )
 End Function
 
