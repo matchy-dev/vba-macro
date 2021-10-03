@@ -7,7 +7,7 @@ Attribute export_code.VB_ProcData.VB_Invoke_Func = "E\n14"
     If Right(out_dir, 1) <> "\" Then
         out_dir = out_dir & "\"
     End If
-    For Each component In ThisWorkbook.VBProject.VBComponents
+    For Each component In ActiveWorkbook.VBProject.VBComponents
         code_status = "NO_CODE"
         If component.codeModule.CountOfLines > 0 Then
             component.Export out_dir & component.Name & ".bas"
