@@ -2,8 +2,8 @@ Attribute VB_Name = "Module1"
 Const CTL_SH = "コントロール"
 Const OUT_SH = "結果"
 Const TBL_SH = "テーブル一覧"
-Const DSN_ADD = "E3"
-Const SQL_ADD = "B3"
+Const DSN_ADD = "E4"
+Const SQL_ADD = "B4"
 
 Const DSN_CONF_SRV_TYPE = 2
 Const DSN_CONF_DSN_NAME = 3
