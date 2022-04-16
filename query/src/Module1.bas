@@ -39,6 +39,8 @@ Function make_dsn_str_org()
             make_dsn_str_org = "DSN=" & dsn_name & ";UID=" & user & ";PWD=" & pass & ";DBQ=" & host & ":" & port & "/" & db_name
         Case "postgres"
             make_dsn_str_org = "DSN=" & dsn_name & ";DATABASE=" & db_name & ";SERVER=" & host & ";PORT=" & port & ";UID=" & user & ";PWD=" & pass
+        Case "mysql"
+            make_dsn_str_org = "DSN=" & dsn_name & ";SERVER=" & host & ";UID=" & user & ";PWD=" & pass & ";DATABASE=" & db_name & ";PORT=" & port
         Case "sqlite"
             make_dsn_str_org = "DSN=" & dsn_name & ";Database=" & db_name
     End Select
@@ -387,6 +389,8 @@ Sub get_table_list()
             sql = "select table_name from user_tables order by 1"
         Case "postgres"
             sql = "select relname from pg_stat_user_tables order by 1"
+        Case "mysql"
+            sql = "select table_name from information_schema.tables where table_schema = (select database()) and table_type = 'base table' order by 1"
         Case "sqlite"
             sql = "select name from sqlite_master where type='table' order by 1"
     End Select
